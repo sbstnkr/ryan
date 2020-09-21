@@ -7,7 +7,7 @@ from datetime import date
 
 previous_df = pd.read_csv('dataframe.csv', sep=';')
 
-driver = webdriver.Chrome('/Users/sebastiankrawczyk/Downloads/chromedriver')
+driver = webdriver.Chrome('/Users/chromedriver')
 
 driver.get('https://www.ryanair.com/pl/pl/tanie-loty/')
 
