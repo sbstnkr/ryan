@@ -5,9 +5,9 @@ import pandas as pd
 import time
 from datetime import date
 
-previous_df = pd.read_csv('dataframe.csv', sep=';')
+#previous_df = pd.read_csv('dataframe.csv', sep=';')
 
-driver = webdriver.Chrome('/Users/sebastiankrawczyk/Downloads/chromedriver')
+driver = webdriver.Chrome('/Users/chromedriver')
 
 driver.get('https://www.ryanair.com/pl/pl/tanie-loty/')
 
@@ -77,9 +77,9 @@ today = date.today()
 df = pd.DataFrame(zipped_list, columns=columns)
 df['next_date'] = today
 
-merged_df = previous_df.merge(df, how='outer', on='airport')
+#merged_df = previous_df.merge(df, how='outer', on='airport')
 
-print(merged_df)
+#print(merged_df)
 
 df.to_csv('dataframe.csv', sep=';', index=False)
 
