@@ -147,9 +147,9 @@ values = file.values.tolist()
 
 for airport, country, month, price, price_change, price_change_percent in values:
     if price_change > 0:
-        body.append(f'<p>{airport} {emojis[country]} | {month} | {price} zł (➕{price_change} zł | 📈{price_change_percent}%)</p>')
+        body.append(f'<p>{airport} {emojis[country]} | {month}<br>{price} zł (➕{price_change} zł | 📈{price_change_percent}%)</p>')
     else:
-        body.append(f'<p>{airport} {emojis[country]} | {month} | {price} zł (➖{str(price_change)[1:]} zł | 📉{str(price_change_percent)[1:]}%)</p>')
+        body.append(f'<p>{airport} {emojis[country]} | {month}<br>{price} zł (➖{str(price_change)[1:]} zł | 📉{str(price_change_percent)[1:]}%)</p>')
 
 content = ''.join(body)
 
