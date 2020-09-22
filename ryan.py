@@ -2,10 +2,12 @@ from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 import pandas as pd
+import numpy as np
 import time
 from datetime import date
+import yagmail
 
-#previous_df = pd.read_csv('dataframe.csv', sep=';')
+previous_df = pd.read_csv('dataframe.csv', sep=';')
 
 driver = webdriver.Chrome('/Users/chromedriver')
 
@@ -65,7 +67,7 @@ while flag:
 
         if condition == 'core-link':
                 actionChains.click(next_button).perform()
-                time.sleep(1)
+                time.sleep(2)
         else:
                 flag = False
 
@@ -77,11 +79,82 @@ today = date.today()
 df = pd.DataFrame(zipped_list, columns=columns)
 df['next_date'] = today
 
-#merged_df = previous_df.merge(df, how='outer', on='airport')
+merged_df = previous_df.merge(df, how='outer', on=['airport', 'country'])
+merged_df['price_change'] = merged_df['new_price'] - merged_df['price']
+merged_df['price_change'] = (merged_df['price_change'].replace(0.0, np.nan)).round(2)
+merged_df = merged_df.dropna()
+merged_df['price_change_percent'] = (((merged_df['new_price'] - merged_df['price'])/merged_df['price'])*100).round(2)
+merged_df.to_csv('merged.csv', sep=';', index=False)
 
-#print(merged_df)
+print(merged_df)
 
-df.to_csv('dataframe.csv', sep=';', index=False)
+df_new = df.copy()
+df_new.columns = previous_df.columns
+#df_new.to_csv('dataframe.csv', sep=';', index=False)
+
+emojis = {'Armenia': '🇦🇲',
+          'Austria': '🇦🇹',
+          'Belgia': '🇧🇪',
+          'Bośnia i Hercegowina': '🇧🇦',
+          'Bułgaria': '🇧🇬',
+          'Chorwacja': '🇭🇷',
+          'Cypr': '🇨🇾',
+          'Czarnogóra': '🇲🇪',
+          'Czechy': '🇨🇿',
+          'Dania': '🇩🇰',
+          'Estonia': '🇪🇪',
+          'Finlandia': '🇫🇮',
+          'Francja': '🇫🇷',
+          'Georgia': '🇬🇪',
+          'Grecja': '🇬🇷',
+          'Hiszpania': '🇪🇸',
+          'Holandia': '🇳🇱',
+          'Irlandia': '🇮🇪',
+          'Izrael': '🇮🇱',
+          'Jordania': '🇯🇴',
+          'Litwa': '🇱🇹',
+          'Łotwa': '🇱🇻',
+          'Luksemburg': '🇱🇺',
+          'Malta': '🇲🇹',
+          'Maroko': '🇲🇦',
+          'Niemcy': '🇩🇪',
+          'Norwegia': '🇳🇴',
+          'Polska': '🇵🇱',
+          'Portugalia': '🇵🇹',
+          'Rosja': '🇷🇺',
+          'Rumunia': '🇷🇴',
+          'Serbia': '🇷🇸',
+          'Słowacja': '🇸🇰',
+          'Szwajcaria': '🇨🇭',
+          'Szwecja': '🇸🇪',
+          'Tunezja': '🇹🇳',
+          'Turcja': '🇹🇷',
+          'Ukraina': '🇺🇦',
+          'Węgry': '🇭🇺',
+          'Wielka Brytania': '🇬🇧',
+          'Włochy': '🇮🇹'
+          }
+
+yag = yagmail.SMTP('ryanair.prices')
+
+file = merged_df[['airport', 'country', 'new_month', 'new_price', 'price_change', 'price_change_percent']].sort_values(by='price_change_percent')
+
+to = ['sebastian.krawczyk1116@gmail.com']
+subject = f'Trendy cenowe Ryanair | {today}'
+body = []
+
+values = file.values.tolist()
+
+for airport, country, month, price, price_change, price_change_percent in values:
+    if price_change > 0:
+        body.append(f'<p>{airport} {emojis[country]} | {month} | {price} zł (➕{price_change} zł | 📈{price_change_percent}%)</p>')
+    else:
+        body.append(f'<p>{airport} {emojis[country]} | {month} | {price} zł (➖{str(price_change)[1:]} zł | 📉{str(price_change_percent)[1:]}%)</p>')
+
+content = ''.join(body)
+
+yag.send(to=to, subject=subject, contents=content)
+
 
 #my_json = df.to_json(orient='index', indent=1)
 #print(my_json)
